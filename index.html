@@ -1,0 +1,240 @@
+<!-- DISEÑO VISUAL DE LA APP -->
+<div class="app-container">
+    <div class="header">
+        <h2>Mi Cartera IBEX 35</h2>
+    </div>
+
+    <div class="balance-card">
+        <div style="color: #94a3b8; font-size: 14px;">Valor de tu Cartera</div>
+        <div class="balance-total" id="total-cartera">0,00 €</div>
+        
+        <div class="reval-container">
+            <div class="reval-box">
+                <div style="font-size: 11px; color: #94a3b8;">REVAL. HOY</div>
+                <div id="reval-dia" class="neutro">0,00 € (0%)</div>
+            </div>
+            <div class="reval-box">
+                <div style="font-size: 11px; color: #94a3b8;">REVAL. ACUMULADA</div>
+                <div id="reval-total" class="neutro">0,00 € (0%)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="formulario">
+        <h4 style="margin-top: 0; margin-bottom: 15px;">Añadir Acción</h4>
+        <div class="input-group">
+            <label>Empresa del Ibex</label>
+            <select id="select-empresa">
+                <option value="Banco Santander">Banco Santander</option>
+                <option value="Telefónica">Telefónica</option>
+                <option value="Iberdrola">Iberdrola</option>
+                <option value="Inditex">Inditex</option>
+                <option value="BBVA">BBVA</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>Precio de compra por acción (€)</label>
+            <input type="number" id="input-precio" placeholder="Ej: 4.00" step="0.01">
+        </div>
+        <div class="input-group">
+            <label>Número de Acciones</label>
+            <input type="number" id="input-cantidad" placeholder="Ej: 50">
+        </div>
+        <button onclick="agregarAccion()">Guardar en Cartera</button>
+    </div>
+
+    <div class="lista-acciones">
+        <h4>Tus Acciones</h4>
+        <div id="contenedor-lista"></div>
+    </div>
+</div>
+
+<!-- ESTILOS DE COLOR Y DISEÑO -->
+<style>
+    body {
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        background-color: #0f172a;
+        color: #f8fafc;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+    }
+    .app-container {
+        width: 100%;
+        max-width: 400px;
+        background-color: #1e293b;
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .header { text-align: center; margin-bottom: 20px; }
+    .balance-card {
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        border: 1px solid #334155;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 25px;
+    }
+    .balance-total { font-size: 32px; font-weight: bold; margin: 5px 0; }
+    .reval-container {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 10px;
+        border-top: 1px solid #334155;
+        padding-top: 10px;
+        font-size: 14px;
+    }
+    .reval-box { text-align: center; }
+    .positivo { color: #10b981; font-weight: bold; }
+    .negativo { color: #ef4444; font-weight: bold; }
+    .neutro { color: #94a3b8; font-weight: bold; }
+    .formulario { background-color: #334155; padding: 15px; border-radius: 12px; margin-bottom: 25px; }
+    .input-group { margin-bottom: 12px; }
+    label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; }
+    select, input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #475569;
+        background-color: #1e293b;
+        color: white;
+        box-sizing: border-box;
+    }
+    button {
+        width: 100%;
+        background-color: #10b981;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 15px;
+    }
+    button:hover { background-color: #059669; }
+    .lista-acciones { margin-top: 20px; }
+    .accion-item { background-color: #334155; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
+    .accion-fila { display: flex; justify-content: space-between; align-items: center; }
+    .accion-nombre { font-weight: bold; }
+    .accion-detalles { font-size: 12px; color: #94a3b8; }
+    .accion-precio { text-align: right; font-weight: bold; }
+    .btn-borrar {
+        background-color: #ef4444;
+        padding: 4px 8px;
+        font-size: 11px;
+        width: auto;
+        margin-top: 8px;
+        border-radius: 4px;
+        border: none;
+        color: white;
+        cursor: pointer;
+    }
+</style>
+
+<!-- LÓGICA Y CEREBRO DE LA APP -->
+<script>
+    const MERCADO = {
+        "Banco Santander": { actual: 4.15, variacionDiaPorcentaje: 1.2 },
+        "Telefónica":      { actual: 4.20, variacionDiaPorcentaje: -0.5 },
+        "Iberdrola":       { actual: 11.80, variacionDiaPorcentaje: 2.1 },
+        "Inditex":         { color: "#ffffff", actual: 44.50, variacionDiaPorcentaje: -1.8 },
+        "BBVA":            { actual: 9.30, variacionDiaPorcentaje: 0.0 }
+    };
+
+    let misAcciones = JSON.parse(localStorage.getItem('cartera_ibex_gh')) || [];
+
+    function aplicarEstiloColor(elemento, valor) {
+        elemento.className = valor > 0 ? "positivo" : (valor < 0 ? "negativo" : "neutro");
+    }
+
+    function actualizarPantalla() {
+        const contenedor = document.getElementById('contenedor-lista');
+        if (!contenedor) return;
+        contenedor.innerHTML = "";
+        
+        let costeTotalInversion = 0;
+        let valorActualCartera = 0;
+        let revalorizacionDiaEuros = 0;
+
+        if (misAcciones.length === 0) {
+            contenedor.innerHTML = "<p style='color:#94a3b8; font-size:14px;'>No tienes acciones guardadas.</p>";
+        }
+
+        misAcciones.forEach((item, index) => {
+            const datosMercado = MERCADO[item.empresa];
+            const valorActualTotal = item.cantidad * datosMercado.actual;
+            const costeTotalItem = item.cantidad * item.precioCompra;
+
+            costeTotalInversion += costeTotalItem;
+            valorActualCartera += valorActualTotal;
+
+            const precioAyer = datosMercado.actual / (1 + (datosMercado.variacionDiaPorcentaje / 100));
+            const valorAyerTotal = item.cantidad * precioAyer;
+            revalorizacionDiaEuros += (valorActualTotal - valorAyerTotal);
+
+            const revalAcumuladaItem = valorActualTotal - costeTotalItem;
+            const revalAcumuladaPorcItem = costeTotalItem > 0 ? (revalAcumuladaItem / costeTotalItem) * 100 : 0;
+            const colorClase = revalAcumuladaItem >= 0 ? "positivo" : "negativo";
+
+            contenedor.innerHTML += `
+                <div class="accion-item">
+                    <div class="accion-fila">
+                        <div>
+                            <div class="accion-nombre">${item.empresa}</div>
+                            <div class="accion-detalles">${item.cantidad} ud. a ${item.precioCompra.toFixed(2)}€</div>
+                        </div>
+                        <div>
+                            <div class="accion-precio">${valorActualTotal.toFixed(2)} €</div>
+                            <div class="accion-detalles ${colorClase}">
+                                ${revalAcumuladaItem >= 0 ? '+' : ''}${revalAcumuladaItem.toFixed(2)}€ (${revalAcumuladaPorcItem.toFixed(1)}%)
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-borrar" onclick="borrarAccion(${index})">Eliminar</button>
+                </div>
+            `;
+        });
+
+        document.getElementById('total-cartera').innerText = valorActualCartera.toFixed(2) + " €";
+
+        const porcentajeDiaGlobal = valorActualCartera > 0 ? (revalorizacionDiaEuros / (valorActualCartera - revalorizacionDiaEuros)) * 100 : 0;
+        const elRevalDia = document.getElementById('reval-dia');
+        elRevalDia.innerText = `${revalorizacionDiaEuros >= 0 ? '+' : ''}${revalorizacionDiaEuros.toFixed(2)} € (${porcentajeDiaGlobal.toFixed(2)}%)`;
+        aplicarEstiloColor(elRevalDia, revalorizacionDiaEuros);
+
+        const revalTotalEuros = valorActualCartera - costeTotalInversion;
+        const porcentajeTotalGlobal = costeTotalInversion > 0 ? (revalTotalEuros / costeTotalInversion) * 100 : 0;
+        const elRevalTotal = document.getElementById('reval-total');
+        elRevalTotal.innerText = `${revalTotalEuros >= 0 ? '+' : ''}${revalTotalEuros.toFixed(2)} € (${porcentajeTotalGlobal.toFixed(2)}%)`;
+        aplicarEstiloColor(elRevalTotal, revalTotalEuros);
+    }
+
+    function agregarAccion() {
+        const empresa = document.getElementById('select-empresa').value;
+        const precioCompra = parseFloat(document.getElementById('input-precio').value);
+        const cantidad = parseInt(document.getElementById('input-cantidad').value);
+        
+        if(!precioCompra || !cantidad || cantidad <= 0 || precioCompra <= 0) {
+            alert("Por favor, introduce valores numéricos válidos.");
+            return;
+        }
+        
+        misAcciones.push({ empresa, precioCompra, cantidad });
+        localStorage.setItem('cartera_ibex_gh', JSON.stringify(misAcciones));
+        
+        document.getElementById('input-precio').value = "";
+        document.getElementById('input-cantidad').value = "";
+        
+        actualizarPantalla();
+    }
+
+    function borrarAccion(index) {
+        misAcciones.splice(index, 1);
+        localStorage.setItem('cartera_ibex_gh', JSON.stringify(misAcciones));
+        actualizarPantalla();
+    }
+
+    setTimeout(actualizarPantalla, 100);
+</script>
