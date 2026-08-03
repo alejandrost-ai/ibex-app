@@ -182,7 +182,7 @@
 
     <!-- LÓGICA DE PROGRAMACIÓN JAVASCRIPT -->
     <script>
-        // Base de datos de cotizaciones simulada (Precios reales de mercado simulados + variación de hoy)
+    // Base de datos de cotizaciones simulada
 const mercadoIbex = {
     "SAN.MC": { nombre: "Banco Santander", precioActual: 4.50, cambioPorcentaje: 1.2 },
     "TEF.MC": { nombre: "Telefónica", precioActual: 3.95, cambioPorcentaje: -0.5 },
@@ -194,14 +194,34 @@ const mercadoIbex = {
 let usuarioActual = null;
 let carteraUsuario = [];
 
-// CORREGIDO: Cambiar entre interfaz de Login y Registro sin romper el formulario
+// Sistema de respaldo seguro en memoria por si LocalStorage está bloqueado (Incógnito)
+let memoriaSimulada = {};
+
+function obtenerUsuarios() {
+    try {
+        const datos = localStorage.getItem('usuarios_app');
+        return datos ? JSON.parse(datos) : memoriaSimulada;
+    } catch (e) {
+        console.warn("LocalStorage bloqueado. Usando memoria temporal.");
+        return memoriaSimulada;
+    }
+}
+
+function guardarUsuarios(usuarios) {
+    try {
+        localStorage.setItem('usuarios_app', JSON.stringify(usuarios));
+    } catch (e) {
+        memoriaSimulada = usuarios;
+    }
+}
+
+// Cambiar entre interfaz de Login y Registro
 function cambiarModoLogin(esRegistro) {
     const titulo = document.getElementById('login-titulo');
     const btnLogin = document.getElementById('bloque-botones-login');
     const btnRegistro = document.getElementById('bloque-botones-registro');
     const error = document.getElementById('error-login');
     
-    // Limpiamos errores anteriores y campos al cambiar de modo
     error.style.display = 'none';
     document.getElementById('login-usuario').value = '';
     document.getElementById('login-password').value = '';
@@ -217,30 +237,28 @@ function cambiarModoLogin(esRegistro) {
     }
 }
 
-// CORREGIDO: Registrar un nuevo usuario en LocalStorage de forma efectiva
+// SOLUCIÓN DEFINITIVA: Registrar usuario tolerante a fallos de privacidad
 function registrarNuevoUsuario() {
     const user = document.getElementById('login-usuario').value.trim();
     const pass = document.getElementById('login-password').value.trim();
-    const error = document.getElementById('error-login');
 
     if (user === "" || pass === "") {
         mostrarError("Por favor, rellena todos los campos.");
         return;
     }
 
-    let usuarios = JSON.parse(localStorage.getItem('usuarios_app')) || {};
+    let usuarios = obtenerUsuarios();
 
     if (usuarios[user]) {
         mostrarError("El usuario ya existe.");
         return;
     }
 
-    // Guardamos el usuario con su cartera vacía inicial
     usuarios[user] = { password: pass, cartera: [] };
-    localStorage.setItem('usuarios_app', JSON.stringify(usuarios));
+    guardarUsuarios(usuarios);
     
     alert("¡Cuenta creada con éxito! Ya puedes iniciar sesión.");
-    cambiarModoLogin(false); // Te devuelve automáticamente a la pantalla de login
+    cambiarModoLogin(false);
 }
 
 // Verificar credenciales de acceso
@@ -248,7 +266,7 @@ function verificarAcceso() {
     const user = document.getElementById('login-usuario').value.trim();
     const pass = document.getElementById('login-password').value.trim();
     
-    let usuarios = JSON.parse(localStorage.getItem('usuarios_app')) || {};
+    let usuarios = obtenerUsuarios();
 
     if (usuarios[user] && usuarios[user].password === pass) {
         usuarioActual = user;
@@ -279,12 +297,11 @@ function mostrarError(mensaje) {
     error.style.display = 'block';
 }
 
-// Guardar cambios de la cartera en el "servidor" local
 function guardarCarteraEnStorage() {
-    let usuarios = JSON.parse(localStorage.getItem('usuarios_app')) || {};
+    let usuarios = obtenerUsuarios();
     if (usuarios[usuarioActual]) {
         usuarios[usuarioActual].cartera = carteraUsuario;
-        localStorage.setItem('usuarios_app', JSON.stringify(usuarios));
+        guardarUsuarios(usuarios);
     }
 }
 
@@ -295,7 +312,7 @@ function añadirAccion() {
     const precioCompra = parseFloat(document.getElementById('input-precio-compra').value);
 
     if (!cantidad || cantidad <= 0 || !precioCompra || precioCompra <= 0) {
-        alert("Introduce valores numéricos válidos y mayores que cero.");
+        alert("Introduce valores numéricos válidos.");
         return;
     }
 
