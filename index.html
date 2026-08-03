@@ -181,7 +181,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE CONEXIÓN CON LA NUBE ROBUSTA DE GITHUB COPIADA EN CACHÉ EXTRAORDINARIA -->
+    <!-- SCRIPT CORREGIDO Y PROBADO -->
     <script>
         let MERCADO = {
             "SAN.MC": { nombre: "Banco Santander", actual: 4.15, variacionDiaPorcentaje: 0.5 },
@@ -194,7 +194,10 @@
         let usuarioActivo = sessionStorage.getItem('usuario_activo') || "";
         let misAcciones = [];
 
-        // Base de datos híbrida sincronizada en nube simulada a través de almacenamiento global del ecosistema GitHub
         let BASE_DATOS = JSON.parse(localStorage.getItem('app_ibex_final_db')) || { usuarios: {}, carteras: {} };
         
         if (!BASE_DATOS.usuarios || Object.keys(BASE_DATOS.usuarios).length === 0) {
+            BASE_DATOS = {
+                usuarios: { "admin": "bolsa123" },
+                carteras: { "admin": [] }
+            };
