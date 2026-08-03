@@ -183,18 +183,197 @@
     <!-- LÓGICA DE PROGRAMACIÓN JAVASCRIPT -->
     <script>
         // Base de datos de cotizaciones simulada (Precios reales de mercado simulados + variación de hoy)
-        const mercadoIbex = {
-            "SAN.MC": { nombre: "Banco Santander", precioActual: 4.50, cambioPorcentaje: 1.2 },
-            "TEF.MC": { nombre: "Telefónica", precioActual: 3.95, cambioPorcentaje: -0.5 },
-            "IBE.MC": { nombre: "Iberdrola", precioActual: 11.80, cambioPorcentaje: 0.8 },
-            "ITX.MC": { nombre: "Inditex", precioActual: 45.20, cambioPorcentaje: 2.1 },
-            "BBVA.MC": { nombre: "BBVA", precioActual: 9.15, cambioPorcentaje: -1.4 }
-        };
+const mercadoIbex = {
+    "SAN.MC": { nombre: "Banco Santander", precioActual: 4.50, cambioPorcentaje: 1.2 },
+    "TEF.MC": { nombre: "Telefónica", precioActual: 3.95, cambioPorcentaje: -0.5 },
+    "IBE.MC": { nombre: "Iberdrola", precioActual: 11.80, cambioPorcentaje: 0.8 },
+    "ITX.MC": { nombre: "Inditex", precioActual: 45.20, cambioPorcentaje: 2.1 },
+    "BBVA.MC": { nombre: "BBVA", precioActual: 9.15, cambioPorcentaje: -1.4 }
+};
 
-        let usuarioActual = null;
-        let carteraUsuario = [];
+let usuarioActual = null;
+let carteraUsuario = [];
 
-        // Cambiar entre interfaz de Login y Registro
-        function cambiarModoLogin(esRegistro) {
-            const titulo = document.getElementById('login-titulo');
-            const btnLogin = document.getElementById('bloque-botones-login');
+// CORREGIDO: Cambiar entre interfaz de Login y Registro sin romper el formulario
+function cambiarModoLogin(esRegistro) {
+    const titulo = document.getElementById('login-titulo');
+    const btnLogin = document.getElementById('bloque-botones-login');
+    const btnRegistro = document.getElementById('bloque-botones-registro');
+    const error = document.getElementById('error-login');
+    
+    // Limpiamos errores anteriores y campos al cambiar de modo
+    error.style.display = 'none';
+    document.getElementById('login-usuario').value = '';
+    document.getElementById('login-password').value = '';
+    
+    if (esRegistro) {
+        titulo.innerText = "Registro Remoto";
+        btnLogin.style.display = 'none';
+        btnRegistro.style.display = 'block';
+    } else {
+        titulo.innerText = "Acceso Seguro";
+        btnLogin.style.display = 'block';
+        btnRegistro.style.display = 'none';
+    }
+}
+
+// CORREGIDO: Registrar un nuevo usuario en LocalStorage de forma efectiva
+function registrarNuevoUsuario() {
+    const user = document.getElementById('login-usuario').value.trim();
+    const pass = document.getElementById('login-password').value.trim();
+    const error = document.getElementById('error-login');
+
+    if (user === "" || pass === "") {
+        mostrarError("Por favor, rellena todos los campos.");
+        return;
+    }
+
+    let usuarios = JSON.parse(localStorage.getItem('usuarios_app')) || {};
+
+    if (usuarios[user]) {
+        mostrarError("El usuario ya existe.");
+        return;
+    }
+
+    // Guardamos el usuario con su cartera vacía inicial
+    usuarios[user] = { password: pass, cartera: [] };
+    localStorage.setItem('usuarios_app', JSON.stringify(usuarios));
+    
+    alert("¡Cuenta creada con éxito! Ya puedes iniciar sesión.");
+    cambiarModoLogin(false); // Te devuelve automáticamente a la pantalla de login
+}
+
+// Verificar credenciales de acceso
+function verificarAcceso() {
+    const user = document.getElementById('login-usuario').value.trim();
+    const pass = document.getElementById('login-password').value.trim();
+    
+    let usuarios = JSON.parse(localStorage.getItem('usuarios_app')) || {};
+
+    if (usuarios[user] && usuarios[user].password === pass) {
+        usuarioActual = user;
+        carteraUsuario = usuarios[user].cartera || [];
+        
+        document.getElementById('pantalla-login').style.display = 'none';
+        document.getElementById('app-principal').style.display = 'block';
+        document.getElementById('nombre-usuario-activo').innerText = user;
+        
+        actualizarInterfazCartera();
+    } else {
+        mostrarError("Usuario o contraseña incorrectos.");
+    }
+}
+
+function cerrarSesion() {
+    usuarioActual = null;
+    carteraUsuario = [];
+    document.getElementById('login-usuario').value = '';
+    document.getElementById('login-password').value = '';
+    document.getElementById('pantalla-login').style.display = 'flex';
+    document.getElementById('app-principal').style.display = 'none';
+}
+
+function mostrarError(mensaje) {
+    const error = document.getElementById('error-login');
+    error.innerText = mensaje;
+    error.style.display = 'block';
+}
+
+// Guardar cambios de la cartera en el "servidor" local
+function guardarCarteraEnStorage() {
+    let usuarios = JSON.parse(localStorage.getItem('usuarios_app')) || {};
+    if (usuarios[usuarioActual]) {
+        usuarios[usuarioActual].cartera = carteraUsuario;
+        localStorage.setItem('usuarios_app', JSON.stringify(usuarios));
+    }
+}
+
+// Añadir activo financiero a la lista
+function añadirAccion() {
+    const ticker = document.getElementById('select-empresa').value;
+    const cantidad = parseInt(document.getElementById('input-cantidad').value);
+    const precioCompra = parseFloat(document.getElementById('input-precio-compra').value);
+
+    if (!cantidad || cantidad <= 0 || !precioCompra || precioCompra <= 0) {
+        alert("Introduce valores numéricos válidos y mayores que cero.");
+        return;
+    }
+
+    const nuevaAccion = {
+        id: Date.now(),
+        ticker: ticker,
+        cantidad: cantidad,
+        precioCompra: precioCompra
+    };
+
+    carteraUsuario.push(nuevaAccion);
+    guardarCarteraEnStorage();
+    actualizarInterfazCartera();
+
+    document.getElementById('input-cantidad').value = '';
+    document.getElementById('input-precio-compra').value = '';
+}
+
+// Eliminar activo financiero
+function eliminarAccion(id) {
+    carteraUsuario = carteraUsuario.filter(item => item.id !== id);
+    guardarCarteraEnStorage();
+    actualizarInterfazCartera();
+}
+
+// Realizar cálculos matemáticos y pintar la interfaz
+function actualizarInterfazCartera() {
+    const contenedor = document.getElementById('contenedor-acciones');
+    contenedor.innerHTML = '';
+
+    let totalValorActual = 0;
+    let totalCosteCompra = 0;
+    let totalRevalDiaEuros = 0;
+
+    carteraUsuario.forEach(accion => {
+        const infoMercado = mercadoIbex[accion.ticker];
+        const costeCompraItem = accion.cantidad * accion.precioCompra;
+        const valorActualItem = accion.cantidad * infoMercado.precioActual;
+        
+        totalCosteCompra += costeCompraItem;
+        totalValorActual += valorActualItem;
+        
+        const precioAyer = infoMercado.precioActual / (1 + (infoMercado.cambioPorcentaje / 100));
+        const revalDiaItem = (infoMercado.precioActual - precioAyer) * accion.cantidad;
+        totalRevalDiaEuros += revalDiaItem;
+
+        const revalAcumuladaItem = valorActualItem - costeCompraItem;
+        const revalAcumuladaPorcItem = costeCompraItem > 0 ? (revalAcumuladaItem / costeCompraItem) * 100 : 0;
+        const claseColorItem = revalAcumuladaItem >= 0 ? 'positivo' : 'negativo';
+
+        contenedor.innerHTML += `
+            <div class="accion-item">
+                <div class="accion-fila">
+                    <div>
+                        <span class="accion-nombre">${infoMercado.nombre}</span>
+                        <div class="accion-detalles">${accion.cantidad} tít. a ${accion.precioCompra.toFixed(2)}€</div>
+                    </div>
+                    <div class="accion-precio">
+                        <div>${valorActualItem.toFixed(2)} €</div>
+                        <div class="${claseColorItem}" style="font-size: 12px;">
+                            ${revalAcumuladaItem >= 0 ? '+' : ''}${revalAcumuladaItem.toFixed(2)}€ (${revalAcumuladaPorcItem.toFixed(1)}%)
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-borrar" onclick="eliminarAccion(${accion.id})">Eliminar</button>
+            </div>
+        `;
+    });
+
+    document.getElementById('total-cartera').innerText = `${totalValorActual.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+
+    const revalDiaPorcentaje = (totalValorActual - totalRevalDiaEuros) > 0 ? (totalRevalDiaEuros / (totalValorActual - totalRevalDiaEuros)) * 100 : 0;
+    const elRevalDia = document.getElementById('reval-dia');
+    elRevalDia.innerText = `${totalRevalDiaEuros >= 0 ? '+' : ''}${totalRevalDiaEuros.toFixed(2)} € (${revalDiaPorcentaje.toFixed(2)}%)`;
+    elRevalDia.className = totalRevalDiaEuros > 0 ? 'positivo' : (totalRevalDiaEuros < 0 ? 'negativo' : 'neutro');
+
+    const totalRevalAcumuladaEuros = totalValorActual - totalCosteCompra;
+    const totalRevalAcumuladaPorc = totalCosteCompra > 0 ? (totalRevalAcumuladaEuros / totalCosteCompra) * 100 : 0;
+    const elRevalTotal = document.getElementById('reval-total');
+    elRevalTotal.innerText = `${totalRevalAcumuladaEuros >= 0 ? '+' : ''}${totalRevalAcumuladaEuros.toFixed(2)} € (${totalRevalAcumuladaPorc.toFixed(2)}%)`;
+    elRevalTotal.className = totalRevalAcumuladaEuros > 0 ? 'positivo' : (totalRevalAcumuladaEuros < 0 ? 'negativo' : 'neutro');
