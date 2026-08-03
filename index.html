@@ -1,7 +1,7 @@
 <!-- PANTALLA DE CONTROL DE ACCESO (LOGIN Y REGISTRO) -->
 <div id="pantalla-login" style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #0f172a; font-family: 'Segoe UI', Roboto, sans-serif;">
     <div style="background-color: #1e293b; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 320px; text-align: center;">
-        <h2 id="login-titulo" style="color: #f8fafc; margin-bottom: 20px;">Acceso Cartera</h2>
+        <h2 id="login-titulo" style="color: #f8fafc; margin-bottom: 20px;">Acceso Nube</h2>
         
         <div style="margin-bottom: 15px; text-align: left;">
             <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Usuario</label>
@@ -19,7 +19,7 @@
         </div>
         
         <div id="bloque-botones-registro" style="display: none;">
-            <button onclick="registrarNuevoUsuario()" style="width: 100%; background-color: #10b981; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 15px;">Crear Cuenta</button>
+            <button onclick="registrarNuevoUsuario()" style="width: 100%; background-color: #10b981; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 15px;">Crear Cuenta en la Nube</button>
             <span style="color: #94a3b8; font-size: 13px;">¿Ya tienes cuenta? <a href="#" onclick="cambiarModoLogin(false)" style="color: #3b82f6; text-decoration: none; font-weight: bold;">Identifícate</a></span>
         </div>
         
@@ -30,7 +30,7 @@
 <!-- CONTENIDO PRINCIPAL DE LA APP -->
 <div id="app-principal" class="app-container" style="display: none;">
     <div class="header">
-        <h2 style="margin-bottom: 5px;">Mi Cartera IBEX 35</h2>
+        <h2 style="margin-bottom: 5px;">Mi Cartera Nube IBEX 35</h2>
         <div style="font-size: 14px; color: #3b82f6; font-weight: bold; margin-bottom: 15px;">
             Usuario: <span id="nombre-usuario-activo"></span>
         </div>
@@ -41,7 +41,7 @@
     </div>
 
     <div class="balance-card">
-        <div style="color: #94a3b8; font-size: 14px;">Valor de tu Cartera</div>
+        <div style="color: #94a3b8; font-size: 14px;">Valor Sincronizado</div>
         <div class="balance-total" id="total-cartera">0,00 €</div>
         
         <div class="reval-container">
@@ -76,7 +76,7 @@
             <label>Número de Acciones</label>
             <input type="number" id="input-cantidad" placeholder="Ej: 50">
         </div>
-        <button onclick="agregarAccion()">Guardar en Cartera</button>
+        <button onclick="agregarAccion()">Guardar en la Nube</button>
     </div>
 
     <div class="lista-acciones">
@@ -85,93 +85,25 @@
     </div>
 </div>
 
-<!-- ESTILOS DE DISEÑO -->
-<style>
-    body {
-        font-family: 'Segoe UI', Roboto, sans-serif;
-        background-color: #0f172a;
-        color: #f8fafc;
-        margin: 0;
-        padding: 20px;
-        display: flex;
-        justify-content: center;
-        flex-direction: column;
-        align-items: center;
-    }
-    .app-container {
-        width: 100%;
-        max-width: 400px;
-        background-color: #1e293b;
-        border-radius: 20px;
-        padding: 20px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    }
-    .balance-card {
-        background: linear-gradient(135deg, #1e293b, #0f172a);
-        border: 1px solid #334155;
-        border-radius: 15px;
-        padding: 20px;
-        text-align: center;
-        margin-bottom: 25px;
-    }
-    .balance-total { font-size: 32px; font-weight: bold; margin: 5px 0; }
-    .reval-container {
-        display: flex;
-        justify-content: space-around;
-        margin-top: 10px;
-        border-top: 1px solid #334155;
-        padding-top: 10px;
-        font-size: 14px;
-    }
-    .reval-box { text-align: center; }
-    .positivo { color: #10b981; font-weight: bold; }
-    .negativo { color: #ef4444; font-weight: bold; }
-    .neutro { color: #94a3b8; font-weight: bold; }
-    .formulario { background-color: #334155; padding: 15px; border-radius: 12px; margin-bottom: 25px; }
-    .input-group { margin-bottom: 12px; }
-    label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; }
-    select, input {
-        width: 100%;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid #475569;
-        background-color: #1e293b;
-        color: white;
-        box-sizing: border-box;
-    }
-    button {
-        width: 100%;
-        background-color: #10b981;
-        color: white;
-        border: none;
-        padding: 12px;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-        font-size: 15px;
-    }
-    button:hover { background-color: #059669; }
-    .lista-acciones { margin-top: 20px; }
-    .accion-item { background-color: #334155; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
-    .accion-fila { display: flex; justify-content: space-between; align-items: center; }
-    .accion-nombre { font-weight: bold; }
-    .accion-detalles { font-size: 12px; color: #94a3b8; }
-    .accion-precio { text-align: right; font-weight: bold; }
-    .btn-borrar {
-        background-color: #ef4444;
-        padding: 4px 8px;
-        font-size: 11px;
-        width: auto;
-        margin-top: 8px;
-        border-radius: 4px;
-        border: none;
-        color: white;
-        cursor: pointer;
-    }
-</style>
+<!-- CARGA DE ARCHIVOS DE FIREBASE DESDE INTERNET -->
+<script src="https://gstatic.com"></script>
+<script src="https://gstatic.com"></script>
 
-<!-- CEREBRO MULTI-USUARIO ARREGLADO -->
 <script>
+    // 🔌 TUS LLAVES REALES DE FIREBASE YA CONECTADAS 🔌
+    const firebaseConfig = {
+        apiKey: "AIzaSyAeLWFMMM5CsgdRe_VpRTlXngCytLHi1I",
+        authDomain: "://firebaseapp.com",
+        projectId: "ibex-app-93db0",
+        storageBucket: "ibex-app-93db0.firebasestorage.app",
+        messagingSenderId: "965780493100",
+        appId: "1:965780493100:web:b5c2ee6148b90b684b5289"
+    };
+    
+    // Inicializar base de datos
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     let MERCADO = {
         "SAN.MC": { nombre: "Banco Santander", actual: 4.15, variacionDiaPorcentaje: 0.5 },
         "TEF.MC": { nombre: "Telefónica", actual: 4.20, variacionDiaPorcentaje: -0.2 },
@@ -183,35 +115,87 @@
     let usuarioActivo = sessionStorage.getItem('usuario_activo') || "";
     let misAcciones = [];
 
-    // CORRECCIÓN: Si no hay base de datos de usuarios creada, la iniciamos correctamente con el "admin" fijo
-    let usuariosRegistrados = JSON.parse(localStorage.getItem('usuarios_app_bolsa'));
-    if (!usuariosRegistrados) {
-        usuariosRegistrados = { "admin": "bolsa123" };
-        localStorage.setItem('usuarios_app_bolsa', JSON.stringify(usuariosRegistrados));
-    }
-
     function cambiarModoLogin(esRegistro) {
-        document.getElementById('login-titulo').innerText = esRegistro ? "Crear Cuenta" : "Acceso Cartera";
+        document.getElementById('login-titulo').innerText = esRegistro ? "Crear Cuenta" : "Acceso Nube";
         document.getElementById('bloque-botones-login').style.display = esRegistro ? "none" : "block";
         document.getElementById('bloque-botones-registro').style.display = esRegistro ? "block" : "none";
         document.getElementById('error-login').style.display = "none";
     }
 
-    function registrarNuevoUsuario() {
+    // REGISTRO EN LA NUBE
+    async function registrarNuevoUsuario() {
         const user = document.getElementById('login-usuario').value.trim().toLowerCase();
         const pass = document.getElementById('login-password').value;
         const msgError = document.getElementById('error-login');
         msgError.style.color = "#ef4444";
 
         if (user === "" || pass === "") {
-            msgError.innerText = "Por favor, rellena ambos campos.";
+            msgError.innerText = "Completa los campos.";
             msgError.style.display = "block";
             return;
         }
 
-        if (usuariosRegistrados[user]) {
-            msgError.innerText = "El nombre de usuario ya está ocupado.";
+        try {
+            const docRef = db.collection("usuarios").doc(user);
+            const docSnap = await docRef.get();
+
+            if (docSnap.exists()) {
+                msgError.innerText = "El usuario ya existe en la nube.";
+                msgError.style.display = "block";
+                return;
+            }
+
+            await docRef.set({ password: pass });
+            msgError.style.color = "#10b981";
+            msgError.innerText = "¡Registrado en la nube con éxito!";
             msgError.style.display = "block";
-            return;
+            setTimeout(() => cambiarModoLogin(false), 1200);
+        } catch (e) {
+            msgError.innerText = "Error de conexión con la nube.";
+            msgError.style.display = "block";
         }
+    }
+
+    // ACCESO DESDE LA NUBE
+    async function verificarAcceso() {
+        const user = document.getElementById('login-usuario').value.trim().toLowerCase();
+        const pass = document.getElementById('login-password').value;
+        const msgError = document.getElementById('error-login');
+        msgError.style.color = "#ef4444";
+
+        try {
+            const docRef = db.collection("usuarios").doc(user);
+            const docSnap = await docRef.get();
+
+            if (docSnap.exists() && docSnap.data().password === pass) {
+                usuarioActivo = user;
+                sessionStorage.setItem('usuario_activo', user);
+                mostrarAppPrincipal();
+            } else {
+                msgError.innerText = "Usuario o contraseña incorrectos.";
+                msgError.style.display = "block";
+            }
+        } catch (e) {
+            msgError.innerText = "Error al conectar con la base de datos.";
+            msgError.style.display = "block";
+        }
+    }
+
+    async function mostrarAppPrincipal() {
+        document.getElementById('pantalla-login').style.display = "none";
+        document.getElementById('app-principal').style.display = "block";
+        document.getElementById('nombre-usuario-activo').innerText = usuarioActivo.toUpperCase();
+        
+        try {
+            const querySnapshot = await db.collection("carteras").where("usuario", "==", usuarioActivo).get();
+            misAcciones = [];
+            querySnapshot.forEach((doc) => {
+                let data = doc.data();
+                data.idNube = doc.id;
+                misAcciones.push(data);
+            });
+        } catch (e) {
+            console.error("Error cargando cartera: ", e);
+        }
+        
 
