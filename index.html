@@ -165,39 +165,36 @@
                 </select>
             </div>
             <div class="input-group">
-                <label>Precio de compra por acción (€)</label>
-                <input type="number" id="input-precio" placeholder="Ej: 4.00" step="0.01">
+                <label>Cantidad de Acciones</label>
+                <input type="number" id="input-cantidad" min="1" placeholder="Ej: 50">
             </div>
             <div class="input-group">
-                <label>Número de Acciones</label>
-                <input type="number" id="input-cantidad" placeholder="Ej: 50">
+                <label>Precio de Compra por Acción (€)</label>
+                <input type="number" id="input-precio-compra" step="0.01" min="0" placeholder="Ej: 4.25">
             </div>
-            <button onclick="agregarAccion()">Guardar en la Nube</button>
+            <button onclick="añadirAccion()">Añadir a la Cartera</button>
         </div>
 
-        <div class="lista-acciones">
-            <h4 style="font-weight: 600;">Tus Acciones</h4>
-            <div id="contenedor-lista"></div>
+        <div class="lista-acciones" id="contenedor-acciones">
+            <!-- Las acciones añadidas aparecerán aquí dinámicamente -->
         </div>
     </div>
 
-    <!-- SCRIPT CORREGIDO Y PROBADO -->
+    <!-- LÓGICA DE PROGRAMACIÓN JAVASCRIPT -->
     <script>
-        let MERCADO = {
-            "SAN.MC": { nombre: "Banco Santander", actual: 4.15, variacionDiaPorcentaje: 0.5 },
-            "TEF.MC": { nombre: "Telefónica", actual: 4.20, variacionDiaPorcentaje: -0.2 },
-            "IBE.MC": { nombre: "Iberdrola", actual: 11.80, variacionDiaPorcentaje: 1.1 },
-            "ITX.MC": { nombre: "Inditex", actual: 44.50, variacionDiaPorcentaje: -0.8 },
-            "BBVA.MC": { nombre: "BBVA", actual: 9.30, variacionDiaPorcentaje: 0.0 }
+        // Base de datos de cotizaciones simulada (Precios reales de mercado simulados + variación de hoy)
+        const mercadoIbex = {
+            "SAN.MC": { nombre: "Banco Santander", precioActual: 4.50, cambioPorcentaje: 1.2 },
+            "TEF.MC": { nombre: "Telefónica", precioActual: 3.95, cambioPorcentaje: -0.5 },
+            "IBE.MC": { nombre: "Iberdrola", precioActual: 11.80, cambioPorcentaje: 0.8 },
+            "ITX.MC": { nombre: "Inditex", precioActual: 45.20, cambioPorcentaje: 2.1 },
+            "BBVA.MC": { nombre: "BBVA", precioActual: 9.15, cambioPorcentaje: -1.4 }
         };
 
-        let usuarioActivo = sessionStorage.getItem('usuario_activo') || "";
-        let misAcciones = [];
+        let usuarioActual = null;
+        let carteraUsuario = [];
 
-        let BASE_DATOS = JSON.parse(localStorage.getItem('app_ibex_final_db')) || { usuarios: {}, carteras: {} };
-        
-        if (!BASE_DATOS.usuarios || Object.keys(BASE_DATOS.usuarios).length === 0) {
-            BASE_DATOS = {
-                usuarios: { "admin": "bolsa123" },
-                carteras: { "admin": [] }
-            };
+        // Cambiar entre interfaz de Login y Registro
+        function cambiarModoLogin(esRegistro) {
+            const titulo = document.getElementById('login-titulo');
+            const btnLogin = document.getElementById('bloque-botones-login');
