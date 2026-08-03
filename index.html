@@ -1,7 +1,28 @@
-<!-- DISEÑO VISUAL DE LA APP -->
-<div class="app-container">
+<!-- PANTALLA DE INICIO DE SESIÓN (LOGIN) -->
+<div id="pantalla-login" style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #0f172a; font-family: 'Segoe UI', Roboto, sans-serif;">
+    <div style="background-color: #1e293b; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 320px; text-align: center;">
+        <h2 style="color: #f8fafc; margin-bottom: 20px;">Acceso Cartera</h2>
+        <div style="margin-bottom: 15px; text-align: left;">
+            <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Usuario</label>
+            <input type="text" id="login-usuario" placeholder="Introduce tu usuario" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background-color: #0f172a; color: white; box-sizing: border-box;">
+        </div>
+        <div style="margin-bottom: 20px; text-align: left;">
+            <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Contraseña</label>
+            <input type="password" id="login-password" placeholder="••••••••" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background-color: #0f172a; color: white; box-sizing: border-box;">
+        </div>
+        <button onclick="verificarAcceso()" style="width: 100%; background-color: #3b82f6; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;">Iniciar Sesión</button>
+        <p id="error-login" style="color: #ef4444; font-size: 12px; margin-top: 15px; display: none;">Usuario o contraseña incorrectos.</p>
+    </div>
+</div>
+
+<!-- CONTENIDO PRINCIPAL DE LA APP -->
+<div id="app-principal" class="app-container" style="display: none;">
     <div class="header">
         <h2>Mi Cartera IBEX 35</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <button onclick="cerrarSesion()" style="width: auto; background-color: #475569; font-size: 11px; padding: 6px 12px; border: none; color: white; border-radius: 4px; cursor: pointer;">Cerrar Sesión</button>
+            <span id="estado-api" style="font-size: 11px; color: #94a3b8;">Precios: Cargando...</span>
+        </div>
     </div>
 
     <div class="balance-card">
@@ -25,11 +46,12 @@
         <div class="input-group">
             <label>Empresa del Ibex</label>
             <select id="select-empresa">
-                <option value="Banco Santander">Banco Santander</option>
-                <option value="Telefónica">Telefónica</option>
-                <option value="Iberdrola">Iberdrola</option>
-                <option value="Inditex">Inditex</option>
-                <option value="BBVA">BBVA</option>
+                <!-- Usamos los Tickers Oficiales de Bolsa para la sincronización con internet -->
+                <option value="SAN.MC">Banco Santander</option>
+                <option value="TEF.MC">Telefónica</option>
+                <option value="IBE.MC">Iberdrola</option>
+                <option value="ITX.MC">Inditex</option>
+                <option value="BBVA.MC">BBVA</option>
             </select>
         </div>
         <div class="input-group">
@@ -59,6 +81,8 @@
         padding: 20px;
         display: flex;
         justify-content: center;
+        flex-direction: column;
+        align-items: center;
     }
     .app-container {
         width: 100%;
@@ -133,108 +157,69 @@
     }
 </style>
 
-<!-- LÓGICA Y CEREBRO DE LA APP -->
+<!-- LÓGICA COCTACIÓN EN VIVO + BASE DE DATOS LOCAL -->
 <script>
-    const MERCADO = {
-        "Banco Santander": { actual: 4.15, variacionDiaPorcentaje: 1.2 },
-        "Telefónica":      { actual: 4.20, variacionDiaPorcentaje: -0.5 },
-        "Iberdrola":       { actual: 11.80, variacionDiaPorcentaje: 2.1 },
-        "Inditex":         { color: "#ffffff", actual: 44.50, variacionDiaPorcentaje: -1.8 },
-        "BBVA":            { actual: 9.30, variacionDiaPorcentaje: 0.0 }
+    const USUARIO_CORRECTO = "admin";
+    const PASSWORD_CORRECTA = "bolsa123";
+
+    // Precios de respaldo (por si falla internet)
+    let MERCADO = {
+        "SAN.MC": { nombre: "Banco Santander", actual: 4.15, variacionDiaPorcentaje: 0.5 },
+        "TEF.MC": { nombre: "Telefónica", actual: 4.20, variacionDiaPorcentaje: -0.2 },
+        "IBE.MC": { nombre: "Iberdrola", actual: 11.80, variacionDiaPorcentaje: 1.1 },
+        "ITX.MC": { nombre: "Inditex", actual: 44.50, variacionDiaPorcentaje: -0.8 },
+        "BBVA.MC": { nombre: "BBVA", actual: 9.30, variacionDiaPorcentaje: 0.0 }
     };
 
     let misAcciones = JSON.parse(localStorage.getItem('cartera_ibex_gh')) || [];
 
-    function aplicarEstiloColor(elemento, valor) {
-        elemento.className = valor > 0 ? "positivo" : (valor < 0 ? "negativo" : "neutro");
-    }
-
-    function actualizarPantalla() {
-        const contenedor = document.getElementById('contenedor-lista');
-        if (!contenedor) return;
-        contenedor.innerHTML = "";
-        
-        let costeTotalInversion = 0;
-        let valorActualCartera = 0;
-        let revalorizacionDiaEuros = 0;
-
-        if (misAcciones.length === 0) {
-            contenedor.innerHTML = "<p style='color:#94a3b8; font-size:14px;'>No tienes acciones guardadas.</p>";
+    // CONEXIÓN EN TIEMPO REAL CON LA BOLSA
+    async function consultarBolsaEnVivo() {
+        const estadoApi = document.getElementById('estado-api');
+        try {
+            // Consultamos los tickers del Ibex 35 a través de una API financiera abierta
+            const tickers = Object.keys(MERCADO).join(',');
+            const respuesta = await fetch(`https://yahoo.com{tickers}`);
+            const data = await respuesta.json();
+            
+            if (data.quoteResponse && data.quoteResponse.result) {
+                data.quoteResponse.result.forEach(stock => {
+                    if (MERCADO[stock.symbol]) {
+                        MERCADO[stock.symbol].actual = stock.regularMarketPrice;
+                        MERCADO[stock.symbol].variacionDiaPorcentaje = stock.regularMarketChangePercent;
+                    }
+                });
+                estadoApi.innerText = "Precios: En Vivo Real";
+                estadoApi.style.color = "#10b981";
+            }
+        } catch (error) {
+            console.log("Error al consultar datos en tiempo real, usando respaldo:", error);
+            estadoApi.innerText = "Precios: Modo Respaldo";
+            estadoApi.style.color = "#f59e0b";
         }
-
-        misAcciones.forEach((item, index) => {
-            const datosMercado = MERCADO[item.empresa];
-            const valorActualTotal = item.cantidad * datosMercado.actual;
-            const costeTotalItem = item.cantidad * item.precioCompra;
-
-            costeTotalInversion += costeTotalItem;
-            valorActualCartera += valorActualTotal;
-
-            const precioAyer = datosMercado.actual / (1 + (datosMercado.variacionDiaPorcentaje / 100));
-            const valorAyerTotal = item.cantidad * precioAyer;
-            revalorizacionDiaEuros += (valorActualTotal - valorAyerTotal);
-
-            const revalAcumuladaItem = valorActualTotal - costeTotalItem;
-            const revalAcumuladaPorcItem = costeTotalItem > 0 ? (revalAcumuladaItem / costeTotalItem) * 100 : 0;
-            const colorClase = revalAcumuladaItem >= 0 ? "positivo" : "negativo";
-
-            contenedor.innerHTML += `
-                <div class="accion-item">
-                    <div class="accion-fila">
-                        <div>
-                            <div class="accion-nombre">${item.empresa}</div>
-                            <div class="accion-detalles">${item.cantidad} ud. a ${item.precioCompra.toFixed(2)}€</div>
-                        </div>
-                        <div>
-                            <div class="accion-precio">${valorActualTotal.toFixed(2)} €</div>
-                            <div class="accion-detalles ${colorClase}">
-                                ${revalAcumuladaItem >= 0 ? '+' : ''}${revalAcumuladaItem.toFixed(2)}€ (${revalAcumuladaPorcItem.toFixed(1)}%)
-                            </div>
-                        </div>
-                    </div>
-                    <button class="btn-borrar" onclick="borrarAccion(${index})">Eliminar</button>
-                </div>
-            `;
-        });
-
-        document.getElementById('total-cartera').innerText = valorActualCartera.toFixed(2) + " €";
-
-        const porcentajeDiaGlobal = valorActualCartera > 0 ? (revalorizacionDiaEuros / (valorActualCartera - revalorizacionDiaEuros)) * 100 : 0;
-        const elRevalDia = document.getElementById('reval-dia');
-        elRevalDia.innerText = `${revalorizacionDiaEuros >= 0 ? '+' : ''}${revalorizacionDiaEuros.toFixed(2)} € (${porcentajeDiaGlobal.toFixed(2)}%)`;
-        aplicarEstiloColor(elRevalDia, revalorizacionDiaEuros);
-
-        const revalTotalEuros = valorActualCartera - costeTotalInversion;
-        const porcentajeTotalGlobal = costeTotalInversion > 0 ? (revalTotalEuros / costeTotalInversion) * 100 : 0;
-        const elRevalTotal = document.getElementById('reval-total');
-        elRevalTotal.innerText = `${revalTotalEuros >= 0 ? '+' : ''}${revalTotalEuros.toFixed(2)} € (${porcentajeTotalGlobal.toFixed(2)}%)`;
-        aplicarEstiloColor(elRevalTotal, revalTotalEuros);
-    }
-
-    function agregarAccion() {
-        const empresa = document.getElementById('select-empresa').value;
-        const precioCompra = parseFloat(document.getElementById('input-precio').value);
-        const cantidad = parseInt(document.getElementById('input-cantidad').value);
-        
-        if(!precioCompra || !cantidad || cantidad <= 0 || precioCompra <= 0) {
-            alert("Por favor, introduce valores numéricos válidos.");
-            return;
-        }
-        
-        misAcciones.push({ empresa, precioCompra, cantidad });
-        localStorage.setItem('cartera_ibex_gh', JSON.stringify(misAcciones));
-        
-        document.getElementById('input-precio').value = "";
-        document.getElementById('input-cantidad').value = "";
-        
         actualizarPantalla();
     }
 
-    function borrarAccion(index) {
-        misAcciones.splice(index, 1);
-        localStorage.setItem('cartera_ibex_gh', JSON.stringify(misAcciones));
-        actualizarPantalla();
+    // CONTROL DE ACCESO
+    function verificarAcceso() {
+        const usuarioInput = document.getElementById('login-usuario').value;
+        const passwordInput = document.getElementById('login-password').value;
+        const msgError = document.getElementById('error-login');
+
+        if (usuarioInput === USUARIO_CORRECTO && passwordInput === PASSWORD_CORRECTA) {
+            sessionStorage.setItem('sesion_activa', 'true');
+            mostrarAppPrincipal();
+        } else {
+            msgError.style.display = "block";
+        }
     }
 
-    setTimeout(actualizarPantalla, 100);
-</script>
+    function mostrarAppPrincipal() {
+        document.getElementById('pantalla-login').style.display = "none";
+        document.getElementById('app-principal').style.display = "block";
+        consultarBolsaEnVivo(); // Consultar precios reales al entrar
+    }
+
+    function cerrarSesion() {
+        sessionStorage.removeItem('sesion_activa');
+        document.getElementById('pantalla-login').style.display = "flex";
