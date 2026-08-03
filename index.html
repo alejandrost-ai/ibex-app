@@ -1,24 +1,40 @@
-<!-- PANTALLA DE INICIO DE SESIÓN (LOGIN) -->
+<!-- PANTALLA DE CONTROL DE ACCESO (LOGIN Y REGISTRO) -->
 <div id="pantalla-login" style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #0f172a; font-family: 'Segoe UI', Roboto, sans-serif;">
     <div style="background-color: #1e293b; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 320px; text-align: center;">
-        <h2 style="color: #f8fafc; margin-bottom: 20px;">Acceso Cartera</h2>
+        <h2 id="login-titulo" style="color: #f8fafc; margin-bottom: 20px;">Acceso Cartera</h2>
+        
         <div style="margin-bottom: 15px; text-align: left;">
             <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Usuario</label>
             <input type="text" id="login-usuario" placeholder="Introduce tu usuario" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background-color: #0f172a; color: white; box-sizing: border-box;">
         </div>
+        
         <div style="margin-bottom: 20px; text-align: left;">
             <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Contraseña</label>
             <input type="password" id="login-password" placeholder="••••••••" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background-color: #0f172a; color: white; box-sizing: border-box;">
         </div>
-        <button onclick="verificarAcceso()" style="width: 100%; background-color: #3b82f6; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;">Iniciar Sesión</button>
-        <p id="error-login" style="color: #ef4444; font-size: 12px; margin-top: 15px; display: none;">Usuario o contraseña incorrectos.</p>
+        
+        <!-- Botones dinámicos según el modo -->
+        <div id="bloque-botones-login">
+            <button onclick="verificarAcceso()" style="width: 100%; background-color: #3b82f6; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 15px;">Iniciar Sesión</button>
+            <span style="color: #94a3b8; font-size: 13px;">¿No tienes cuenta? <a href="#" onclick="cambiarModoLogin(true)" style="color: #3b82f6; text-decoration: none; font-weight: bold;">Regístrate</a></span>
+        </div>
+        
+        <div id="bloque-botones-registro" style="display: none;">
+            <button onclick="registrarNuevoUsuario()" style="width: 100%; background-color: #10b981; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 15px;">Crear Cuenta</button>
+            <span style="color: #94a3b8; font-size: 13px;">¿Ya tienes cuenta? <a href="#" onclick="cambiarModoLogin(false)" style="color: #3b82f6; text-decoration: none; font-weight: bold;">Identifícate</a></span>
+        </div>
+        
+        <p id="error-login" style="color: #ef4444; font-size: 12px; margin-top: 15px; display: none;"></p>
     </div>
 </div>
 
 <!-- CONTENIDO PRINCIPAL DE LA APP -->
 <div id="app-principal" class="app-container" style="display: none;">
     <div class="header">
-        <h2>Mi Cartera IBEX 35</h2>
+        <h2 style="margin-bottom: 5px;">Mi Cartera IBEX 35</h2>
+        <div style="font-size: 14px; color: #3b82f6; font-weight: bold; margin-bottom: 15px;">
+            Usuario: <span id="nombre-usuario-activo"></span>
+        </div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <button onclick="cerrarSesion()" style="width: auto; background-color: #475569; font-size: 11px; padding: 6px 12px; border: none; color: white; border-radius: 4px; cursor: pointer;">Cerrar Sesión</button>
             <span id="estado-api" style="font-size: 11px; color: #94a3b8;">Precios: Cargando...</span>
@@ -46,7 +62,6 @@
         <div class="input-group">
             <label>Empresa del Ibex</label>
             <select id="select-empresa">
-                <!-- Usamos los Tickers Oficiales de Bolsa para la sincronización con internet -->
                 <option value="SAN.MC">Banco Santander</option>
                 <option value="TEF.MC">Telefónica</option>
                 <option value="IBE.MC">Iberdrola</option>
@@ -92,7 +107,6 @@
         padding: 20px;
         box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     }
-    .header { text-align: center; margin-bottom: 20px; }
     .balance-card {
         background: linear-gradient(135deg, #1e293b, #0f172a);
         border: 1px solid #334155;
@@ -157,12 +171,9 @@
     }
 </style>
 
-<!-- LÓGICA COCTACIÓN EN VIVO + BASE DE DATOS LOCAL -->
+<!-- LÓGICA MULTI-USUARIO + CARTERA EN VIVO -->
 <script>
-    const USUARIO_CORRECTO = "admin";
-    const PASSWORD_CORRECTA = "bolsa123";
-
-    // Precios de respaldo (por si falla internet)
+    // Estructura para precios en tiempo real
     let MERCADO = {
         "SAN.MC": { nombre: "Banco Santander", actual: 4.15, variacionDiaPorcentaje: 0.5 },
         "TEF.MC": { nombre: "Telefónica", actual: 4.20, variacionDiaPorcentaje: -0.2 },
@@ -171,55 +182,37 @@
         "BBVA.MC": { nombre: "BBVA", actual: 9.30, variacionDiaPorcentaje: 0.0 }
     };
 
-    let misAcciones = JSON.parse(localStorage.getItem('cartera_ibex_gh')) || [];
+    // Variables de control de sesión
+    let usuarioActivo = sessionStorage.getItem('usuario_activo') || "";
+    let misAcciones = [];
 
-    // CONEXIÓN EN TIEMPO REAL CON LA BOLSA
-    async function consultarBolsaEnVivo() {
-        const estadoApi = document.getElementById('estado-api');
-        try {
-            // Consultamos los tickers del Ibex 35 a través de una API financiera abierta
-            const tickers = Object.keys(MERCADO).join(',');
-            const respuesta = await fetch(`https://yahoo.com{tickers}`);
-            const data = await respuesta.json();
-            
-            if (data.quoteResponse && data.quoteResponse.result) {
-                data.quoteResponse.result.forEach(stock => {
-                    if (MERCADO[stock.symbol]) {
-                        MERCADO[stock.symbol].actual = stock.regularMarketPrice;
-                        MERCADO[stock.symbol].variacionDiaPorcentaje = stock.regularMarketChangePercent;
-                    }
-                });
-                estadoApi.innerText = "Precios: En Vivo Real";
-                estadoApi.style.color = "#10b981";
-            }
-        } catch (error) {
-            console.log("Error al consultar datos en tiempo real, usando respaldo:", error);
-            estadoApi.innerText = "Precios: Modo Respaldo";
-            estadoApi.style.color = "#f59e0b";
-        }
-        actualizarPantalla();
+    // Sistema de registro local de usuarios
+    let usuariosRegistrados = JSON.parse(localStorage.getItem('usuarios_app_bolsa')) || {
+        "admin": "bolsa123" // Usuario maestro por defecto
+    };
+
+    function cambiarModoLogin(esRegistro) {
+        document.getElementById('login-titulo').innerText = esRegistro ? "Crear Cuenta" : "Acceso Cartera";
+        document.getElementById('bloque-botones-login').style.display = esRegistro ? "none" : "block";
+        document.getElementById('bloque-botones-registro').style.display = esRegistro ? "block" : "none";
+        document.getElementById('error-login').style.display = "none";
     }
 
-    // CONTROL DE ACCESO
-    function verificarAcceso() {
-        const usuarioInput = document.getElementById('login-usuario').value;
-        const passwordInput = document.getElementById('login-password').value;
+    function registrarNuevoUsuario() {
+        const user = document.getElementById('login-usuario').value.trim().toLowerCase();
+        const pass = document.getElementById('login-password').value;
         const msgError = document.getElementById('error-login');
 
-        if (usuarioInput === USUARIO_CORRECTO && passwordInput === PASSWORD_CORRECTA) {
-            sessionStorage.setItem('sesion_activa', 'true');
-            mostrarAppPrincipal();
-        } else {
+        if (user === "" || pass === "") {
+            msgError.innerText = "Por favor, rellena ambos campos.";
             msgError.style.display = "block";
+            return;
         }
-    }
 
-    function mostrarAppPrincipal() {
-        document.getElementById('pantalla-login').style.display = "none";
-        document.getElementById('app-principal').style.display = "block";
-        consultarBolsaEnVivo(); // Consultar precios reales al entrar
-    }
+        if (usuariosRegistrados[user]) {
+            msgError.innerText = "El nombre de usuario ya está ocupado.";
+            msgError.style.display = "block";
+            return;
+        }
 
-    function cerrarSesion() {
-        sessionStorage.removeItem('sesion_activa');
-        document.getElementById('pantalla-login').style.display = "flex";
+        // Guardar credenciales en la base de datos de usuarios
