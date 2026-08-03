@@ -13,7 +13,6 @@
             <input type="password" id="login-password" placeholder="••••••••" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background-color: #0f172a; color: white; box-sizing: border-box;">
         </div>
         
-        <!-- Botones dinámicos según el modo -->
         <div id="bloque-botones-login">
             <button onclick="verificarAcceso()" style="width: 100%; background-color: #3b82f6; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 15px;">Iniciar Sesión</button>
             <span style="color: #94a3b8; font-size: 13px;">¿No tienes cuenta? <a href="#" onclick="cambiarModoLogin(true)" style="color: #3b82f6; text-decoration: none; font-weight: bold;">Regístrate</a></span>
@@ -86,7 +85,7 @@
     </div>
 </div>
 
-<!-- ESTILOS DE COLOR Y DISEÑO -->
+<!-- ESTILOS DE DISEÑO -->
 <style>
     body {
         font-family: 'Segoe UI', Roboto, sans-serif;
@@ -171,9 +170,8 @@
     }
 </style>
 
-<!-- LÓGICA MULTI-USUARIO + CARTERA EN VIVO -->
+<!-- CEREBRO MULTI-USUARIO ARREGLADO -->
 <script>
-    // Estructura para precios en tiempo real
     let MERCADO = {
         "SAN.MC": { nombre: "Banco Santander", actual: 4.15, variacionDiaPorcentaje: 0.5 },
         "TEF.MC": { nombre: "Telefónica", actual: 4.20, variacionDiaPorcentaje: -0.2 },
@@ -182,14 +180,15 @@
         "BBVA.MC": { nombre: "BBVA", actual: 9.30, variacionDiaPorcentaje: 0.0 }
     };
 
-    // Variables de control de sesión
     let usuarioActivo = sessionStorage.getItem('usuario_activo') || "";
     let misAcciones = [];
 
-    // Sistema de registro local de usuarios
-    let usuariosRegistrados = JSON.parse(localStorage.getItem('usuarios_app_bolsa')) || {
-        "admin": "bolsa123" // Usuario maestro por defecto
-    };
+    // CORRECCIÓN: Si no hay base de datos de usuarios creada, la iniciamos correctamente con el "admin" fijo
+    let usuariosRegistrados = JSON.parse(localStorage.getItem('usuarios_app_bolsa'));
+    if (!usuariosRegistrados) {
+        usuariosRegistrados = { "admin": "bolsa123" };
+        localStorage.setItem('usuarios_app_bolsa', JSON.stringify(usuariosRegistrados));
+    }
 
     function cambiarModoLogin(esRegistro) {
         document.getElementById('login-titulo').innerText = esRegistro ? "Crear Cuenta" : "Acceso Cartera";
@@ -202,6 +201,7 @@
         const user = document.getElementById('login-usuario').value.trim().toLowerCase();
         const pass = document.getElementById('login-password').value;
         const msgError = document.getElementById('error-login');
+        msgError.style.color = "#ef4444";
 
         if (user === "" || pass === "") {
             msgError.innerText = "Por favor, rellena ambos campos.";
@@ -215,4 +215,3 @@
             return;
         }
 
-        // Guardar credenciales en la base de datos de usuarios
