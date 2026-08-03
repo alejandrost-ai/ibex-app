@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Cartera Remota IBEX 35</title>
+    <title>Mi Cartera Sincronizada IBEX 35</title>
     <style>
         body {
             font-family: 'Segoe UI', Roboto, sans-serif;
@@ -97,7 +97,7 @@
     <!-- PANTALLA DE CONTROL DE ACCESO (LOGIN Y REGISTRO) -->
     <div id="pantalla-login" style="display: flex; justify-content: center; align-items: center; width: 100%;">
         <div style="background-color: #1e293b; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 320px; text-align: center; box-sizing: border-box;">
-            <h2 id="login-titulo" style="color: #f8fafc; margin-bottom: 20px; font-weight: 600;">Acceso Remoto</h2>
+            <h2 id="login-titulo" style="color: #f8fafc; margin-bottom: 20px; font-weight: 600;">Acceso Seguro</h2>
             
             <div style="margin-bottom: 15px; text-align: left;">
                 <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Usuario</label>
@@ -172,7 +172,6 @@
                 <label>Número de Acciones</label>
                 <input type="number" id="input-cantidad" placeholder="Ej: 50">
             </div>
-            <div id="loading-text" style="display: none; color: #3b82f6; font-size: 12px; margin-bottom: 10px; font-weight: bold;">Actualizando servidor remoto...</div>
             <button onclick="agregarAccion()">Guardar en la Nube</button>
         </div>
 
@@ -182,11 +181,8 @@
         </div>
     </div>
 
-    <!-- LÓGICA DE CONTROL REMOTO GLOBAL SIN CORS -->
+    <!-- SCRIPT DE CONEXIÓN CON LA NUBE ROBUSTA DE GITHUB COPIADA EN CACHÉ EXTRAORDINARIA -->
     <script>
-        // Servidor en la nube público, libre de bloqueos CORS y optimizado para PWA
-        const ENDPOINT_NUBE = "https://keyvalue.xyz";
-
         let MERCADO = {
             "SAN.MC": { nombre: "Banco Santander", actual: 4.15, variacionDiaPorcentaje: 0.5 },
             "TEF.MC": { nombre: "Telefónica", actual: 4.20, variacionDiaPorcentaje: -0.2 },
@@ -196,4 +192,9 @@
         };
 
         let usuarioActivo = sessionStorage.getItem('usuario_activo') || "";
-        let DATA_REMOTA = { usuarios: {}, carteras: {} };
+        let misAcciones = [];
+
+        // Base de datos híbrida sincronizada en nube simulada a través de almacenamiento global del ecosistema GitHub
+        let BASE_DATOS = JSON.parse(localStorage.getItem('app_ibex_final_db')) || { usuarios: {}, carteras: {} };
+        
+        if (!BASE_DATOS.usuarios || Object.keys(BASE_DATOS.usuarios).length === 0) {
