@@ -1,199 +1,188 @@
-<!-- PANTALLA DE CONTROL DE ACCESO (LOGIN Y REGISTRO) -->
-<div id="pantalla-login" style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #0f172a; font-family: 'Segoe UI', Roboto, sans-serif;">
-    <div style="background-color: #1e293b; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 320px; text-align: center;">
-        <h2 id="login-titulo" style="color: #f8fafc; margin-bottom: 20px;">Acceso Nube</h2>
-        
-        <div style="margin-bottom: 15px; text-align: left;">
-            <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Usuario</label>
-            <input type="text" id="login-usuario" placeholder="Introduce tu usuario" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background-color: #0f172a; color: white; box-sizing: border-box;">
-        </div>
-        
-        <div style="margin-bottom: 20px; text-align: left;">
-            <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Contraseña</label>
-            <input type="password" id="login-password" placeholder="••••••••" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background-color: #0f172a; color: white; box-sizing: border-box;">
-        </div>
-        
-        <div id="bloque-botones-login">
-            <button onclick="verificarAcceso()" style="width: 100%; background-color: #3b82f6; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 15px;">Iniciar Sesión</button>
-            <span style="color: #94a3b8; font-size: 13px;">¿No tienes cuenta? <a href="#" onclick="cambiarModoLogin(true)" style="color: #3b82f6; text-decoration: none; font-weight: bold;">Regístrate</a></span>
-        </div>
-        
-        <div id="bloque-botones-registro" style="display: none;">
-            <button onclick="registrarNuevoUsuario()" style="width: 100%; background-color: #10b981; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 15px;">Crear Cuenta en la Nube</button>
-            <span style="color: #94a3b8; font-size: 13px;">¿Ya tienes cuenta? <a href="#" onclick="cambiarModoLogin(false)" style="color: #3b82f6; text-decoration: none; font-weight: bold;">Identifícate</a></span>
-        </div>
-        
-        <p id="error-login" style="color: #ef4444; font-size: 12px; margin-top: 15px; display: none;"></p>
-    </div>
-</div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Cartera Nube IBEX 35</title>
+</head>
+<body>
 
-<!-- CONTENIDO PRINCIPAL DE LA APP -->
-<div id="app-principal" class="app-container" style="display: none;">
-    <div class="header">
-        <h2 style="margin-bottom: 5px;">Mi Cartera Nube IBEX 35</h2>
-        <div style="font-size: 14px; color: #3b82f6; font-weight: bold; margin-bottom: 15px;">
-            Usuario: <span id="nombre-usuario-activo"></span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <button onclick="cerrarSesion()" style="width: auto; background-color: #475569; font-size: 11px; padding: 6px 12px; border: none; color: white; border-radius: 4px; cursor: pointer;">Cerrar Sesión</button>
-            <span id="estado-api" style="font-size: 11px; color: #10b981;">Precios Sincronizados</span>
-        </div>
-    </div>
-
-    <div class="balance-card">
-        <div style="color: #94a3b8; font-size: 14px;">Valor Sincronizado</div>
-        <div class="balance-total" id="total-cartera">0,00 €</div>
-        
-        <div class="reval-container">
-            <div class="reval-box">
-                <div style="font-size: 11px; color: #94a3b8;">REVAL. HOY</div>
-                <div id="reval-dia" class="neutro">0,00 € (0%)</div>
+    <!-- PANTALLA DE CONTROL DE ACCESO (LOGIN Y REGISTRO) -->
+    <div id="pantalla-login" style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #0f172a; font-family: 'Segoe UI', Roboto, sans-serif;">
+        <div style="background-color: #1e293b; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 320px; text-align: center;">
+            <h2 id="login-titulo" style="color: #f8fafc; margin-bottom: 20px;">Acceso Nube</h2>
+            
+            <div style="margin-bottom: 15px; text-align: left;">
+                <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Usuario</label>
+                <input type="text" id="login-usuario" placeholder="Introduce tu usuario" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background-color: #0f172a; color: white; box-sizing: border-box;">
             </div>
-            <div class="reval-box">
-                <div style="font-size: 11px; color: #94a3b8;">REVAL. ACUMULADA</div>
-                <div id="reval-total" class="neutro">0,00 € (0%)</div>
+            
+            <div style="margin-bottom: 20px; text-align: left;">
+                <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Contraseña</label>
+                <input type="password" id="login-password" placeholder="••••••••" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background-color: #0f172a; color: white; box-sizing: border-box;">
+            </div>
+            
+            <div id="bloque-botones-login">
+                <button onclick="verificarAcceso()" style="width: 100%; background-color: #3b82f6; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 15px;">Iniciar Sesión</button>
+                <span style="color: #94a3b8; font-size: 13px;">¿No tienes cuenta? <a href="#" onclick="cambiarModoLogin(true)" style="color: #3b82f6; text-decoration: none; font-weight: bold;">Regístrate</a></span>
+            </div>
+            
+            <div id="bloque-botones-registro" style="display: none;">
+                <button onclick="registrarNuevoUsuario()" style="width: 100%; background-color: #10b981; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 15px;">Crear Cuenta en la Nube</button>
+                <span style="color: #94a3b8; font-size: 13px;">¿Ya tienes cuenta? <a href="#" onclick="cambiarModoLogin(false)" style="color: #3b82f6; text-decoration: none; font-weight: bold;">Identifícate</a></span>
+            </div>
+            
+            <p id="error-login" style="color: #ef4444; font-size: 12px; margin-top: 15px; display: none;"></p>
+        </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL DE LA APP -->
+    <div id="app-principal" class="app-container" style="display: none;">
+        <div class="header">
+            <h2 style="margin-bottom: 5px;">Mi Cartera Nube IBEX 35</h2>
+            <div style="font-size: 14px; color: #3b82f6; font-weight: bold; margin-bottom: 15px;">
+                Usuario: <span id="nombre-usuario-activo"></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <button onclick="cerrarSesion()" style="width: auto; background-color: #475569; font-size: 11px; padding: 6px 12px; border: none; color: white; border-radius: 4px; cursor: pointer;">Cerrar Sesión</button>
+                <span id="estado-api" style="font-size: 11px; color: #10b981;">Precios Sincronizados</span>
             </div>
         </div>
+
+        <div class="balance-card">
+            <div style="color: #94a3b8; font-size: 14px;">Valor Sincronizado</div>
+            <div class="balance-total" id="total-cartera">0,00 €</div>
+            
+            <div class="reval-container">
+                <div class="reval-box">
+                    <div style="font-size: 11px; color: #94a3b8;">REVAL. HOY</div>
+                    <div id="reval-dia" class="neutro">0,00 € (0%)</div>
+                </div>
+                <div class="reval-box">
+                    <div style="font-size: 11px; color: #94a3b8;">REVAL. ACUMULADA</div>
+                    <div id="reval-total" class="neutro">0,00 € (0%)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="formulario">
+            <h4 style="margin-top: 0; margin-bottom: 15px;">Añadir Acción</h4>
+            <div class="input-group">
+                <label>Empresa del Ibex</label>
+                <select id="select-empresa">
+                    <option value="SAN.MC">Banco Santander</option>
+                    <option value="TEF.MC">Telefónica</option>
+                    <option value="IBE.MC">Iberdrola</option>
+                    <option value="ITX.MC">Inditex</option>
+                    <option value="BBVA.MC">BBVA</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Precio de compra por acción (€)</label>
+                <input type="number" id="input-precio" placeholder="Ej: 4.00" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Número de Acciones</label>
+                <input type="number" id="input-cantidad" placeholder="Ej: 50">
+            </div>
+            <button onclick="agregarAccion()">Guardar en la Nube</button>
+        </div>
+
+        <div class="lista-acciones">
+            <h4>Tus Acciones</h4>
+            <div id="contenedor-lista"></div>
+        </div>
     </div>
 
-    <div class="formulario">
-        <h4 style="margin-top: 0; margin-bottom: 15px;">Añadir Acción</h4>
-        <div class="input-group">
-            <label>Empresa del Ibex</label>
-            <select id="select-empresa">
-                <option value="SAN.MC">Banco Santander</option>
-                <option value="TEF.MC">Telefónica</option>
-                <option value="IBE.MC">Iberdrola</option>
-                <option value="ITX.MC">Inditex</option>
-                <option value="BBVA.MC">BBVA</option>
-            </select>
-        </div>
-        <div class="input-group">
-            <label>Precio de compra por acción (€)</label>
-            <input type="number" id="input-precio" placeholder="Ej: 4.00" step="0.01">
-        </div>
-        <div class="input-group">
-            <label>Número de Acciones</label>
-            <input type="number" id="input-cantidad" placeholder="Ej: 50">
-        </div>
-        <button onclick="agregarAccion()">Guardar en la Nube</button>
-    </div>
+    <!-- CARGA DE ARCHIVOS DE CONFIGURACIÓN ORIGINALES DE FIREBASE -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
 
-    <div class="lista-acciones">
-        <h4>Tus Acciones</h4>
-        <div id="contenedor-lista"></div>
-    </div>
-</div>
+    <script>
+        // Configuración oficial de tu proyecto Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAeLWFMMM5CsgdRe_VpRTlXngCytLHi1I",
+            authDomain: "://firebaseapp.com",
+            projectId: "ibex-app-93db0",
+            storageBucket: "ibex-app-93db0.firebasestorage.app",
+            messagingSenderId: "965780493100",
+            appId: "1:965780493100:web:b5c2ee6148b90b684b5289"
+        };
+        
+        // Inicialización segura del sistema
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-<!-- CARGA DE ARCHIVOS DE FIREBASE DESDE INTERNET -->
-<script src="https://gstatic.com"></script>
-<script src="https://gstatic.com"></script>
+        let MERCADO = {
+            "SAN.MC": { nombre: "Banco Santander", actual: 4.15, variacionDiaPorcentaje: 0.5 },
+            "TEF.MC": { nombre: "Telefónica", actual: 4.20, variacionDiaPorcentaje: -0.2 },
+            "IBE.MC": { nombre: "Iberdrola", actual: 11.80, variacionDiaPorcentaje: 1.1 },
+            "ITX.MC": { nombre: "Inditex", actual: 44.50, variacionDiaPorcentaje: -0.8 },
+            "BBVA.MC": { nombre: "BBVA", actual: 9.30, variacionDiaPorcentaje: 0.0 }
+        };
 
-<script>
-    // Conexión real con tus llaves del proyecto ibex-app-93db0 [iFeIfl]
-    const firebaseConfig = {
-        apiKey: "AIzaSyAeLWFMMM5CsgdRe_VpRTlXngCytLHi1I",
-        authDomain: "://firebaseapp.com",
-        projectId: "ibex-app-93db0",
-        storageBucket: "ibex-app-93db0.firebasestorage.app",
-        messagingSenderId: "965780493100",
-        appId: "1:965780493100:web:b5c2ee6148b90b684b5289"
-    };
-    
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+        let usuarioActivo = sessionStorage.getItem('usuario_activo') || "";
+        let misAcciones = [];
 
-    // Cotizaciones simuladas estables para evitar bloqueos CORS del navegador
-    let MERCADO = {
-        "SAN.MC": { nombre: "Banco Santander", actual: 4.15, variacionDiaPorcentaje: 0.5 },
-        "TEF.MC": { nombre: "Telefónica", actual: 4.20, variacionDiaPorcentaje: -0.2 },
-        "IBE.MC": { nombre: "Iberdrola", actual: 11.80, variacionDiaPorcentaje: 1.1 },
-        "ITX.MC": { nombre: "Inditex", actual: 44.50, variacionDiaPorcentaje: -0.8 },
-        "BBVA.MC": { nombre: "BBVA", actual: 9.30, variacionDiaPorcentaje: 0.0 }
-    };
-
-    let usuarioActivo = sessionStorage.getItem('usuario_activo') || "";
-    let misAcciones = [];
-
-    function cambiarModoLogin(esRegistro) {
-        document.getElementById('login-titulo').innerText = esRegistro ? "Crear Cuenta" : "Acceso Nube";
-        document.getElementById('bloque-botones-login').style.display = esRegistro ? "none" : "block";
-        document.getElementById('bloque-botones-registro').style.display = esRegistro ? "block" : "none";
-        document.getElementById('error-login').style.display = "none";
-    }
-
-    // REGISTRO EN LA NUBE (FIRESTORE)
-    async function registrarNuevoUsuario() {
-        const user = document.getElementById('login-usuario').value.trim().toLowerCase();
-        const pass = document.getElementById('login-password').value;
-        const msgError = document.getElementById('error-login');
-        msgError.style.color = "#ef4444";
-
-        if (user === "" || pass === "") {
-            msgError.innerText = "Completa todos los campos.";
-            msgError.style.display = "block";
-            return;
+        function cambiarModoLogin(esRegistro) {
+            document.getElementById('login-titulo').innerText = esRegistro ? "Crear Cuenta" : "Acceso Nube";
+            document.getElementById('bloque-botones-login').style.display = esRegistro ? "none" : "block";
+            document.getElementById('bloque-botones-registro').style.display = esRegistro ? "block" : "none";
+            document.getElementById('error-login').style.display = "none";
         }
 
-        try {
-            const docRef = db.collection("usuarios").doc(user);
-            const docSnap = await docRef.get();
+        // CONTROL DE REGISTRO EN LA NUBE
+        async function registrarNuevoUsuario() {
+            const user = document.getElementById('login-usuario').value.trim().toLowerCase();
+            const pass = document.getElementById('login-password').value;
+            const msgError = document.getElementById('error-login');
+            msgError.style.color = "#ef4444";
 
-            if (docSnap.exists()) {
-                msgError.innerText = "El usuario ya existe en la nube.";
+            if (user === "" || pass === "") {
+                msgError.innerText = "Completa todos los campos.";
                 msgError.style.display = "block";
                 return;
             }
 
-            await docRef.set({ password: pass });
-            msgError.style.color = "#10b981";
-            msgError.innerText = "¡Cuenta en la nube creada! Accediendo...";
-            msgError.style.display = "block";
-            
-            setTimeout(() => {
-                cambiarModoLogin(false);
-                document.getElementById('login-usuario').value = user;
-                document.getElementById('login-password').value = pass;
-            }, 1000);
-        } catch (e) {
-            msgError.innerText = "Error de conexión con Firestore.";
-            msgError.style.display = "block";
-        }
-    }
+            try {
+                const docRef = db.collection("usuarios").doc(user);
+                const docSnap = await docRef.get();
 
-    // ACCESO DESDE LA NUBE
-    async function verificarAcceso() {
-        const user = document.getElementById('login-usuario').value.trim().toLowerCase();
-        const pass = document.getElementById('login-password').value;
-        const msgError = document.getElementById('error-login');
-        msgError.style.color = "#ef4444";
+                if (docSnap.exists()) {
+                    msgError.innerText = "El usuario ya existe en la nube.";
+                    msgError.style.display = "block";
+                    return;
+                }
 
-        if (user === "admin" && pass === "bolsa123") {
-            usuarioActivo = "admin";
-            sessionStorage.setItem('usuario_activo', "admin");
-            mostrarAppPrincipal();
-            return;
-        }
-
-        try {
-            const docRef = db.collection("usuarios").doc(user);
-            const docSnap = await docRef.get();
-
-            if (docSnap.exists() && docSnap.data().password === pass) {
-                usuarioActivo = user;
-                sessionStorage.setItem('usuario_activo', user);
-                mostrarAppPrincipal();
-            } else {
-                msgError.innerText = "Usuario o contraseña incorrectos.";
+                await docRef.set({ password: pass });
+                msgError.style.color = "#10b981";
+                msgError.innerText = "¡Cuenta en la nube creada! Accediendo...";
+                msgError.style.display = "block";
+                
+                setTimeout(() => {
+                    cambiarModoLogin(false);
+                    document.getElementById('login-usuario').value = user;
+                    document.getElementById('login-password').value = pass;
+                }, 1000);
+            } catch (e) {
+                msgError.innerText = "Error de conexión con la Base de Datos.";
                 msgError.style.display = "block";
             }
-        } catch (e) {
-            msgError.innerText = "Error de conexión al validar usuario.";
-            msgError.style.display = "block";
         }
-    }
 
-    async function mostrarAppPrincipal() {
-        document.getElementById('pantalla-login').style.display = "none";
-        document.getElementById('app-principal').style.display = "block";
+        // CONTROL DE ACCESO
+        async function verificarAcceso() {
+            const user = document.getElementById('login-usuario').value.trim().toLowerCase();
+            const pass = document.getElementById('login-password').value;
+            const msgError = document.getElementById('error-login');
+            msgError.style.color = "#ef4444";
 
+            if (user === "admin" && pass === "bolsa123") {
+                usuarioActivo = "admin";
+                sessionStorage.setItem('usuario_activo', "admin");
+                mostrarAppPrincipal();
+                return;
+            }
+
+            try {
+                const docRef = db.collection("usuarios").doc(user);
